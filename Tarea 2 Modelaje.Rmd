@@ -1,0 +1,147 @@
+---
+title: 'Tarea 2 '
+author: "Moreno Juárez Ernesto"
+date: "26/9/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+#### Modelo SIR, con demografía.  
+El modelo SIR, modela la dinámica de infección para diferentes patógenos en los que se tienen tres estados. Dichos estados son: Susceptible, Infectado y Recuperado. Es importante destacar que en ciertos casos el estado de recuperado no garantiza que exista inmunidad contra la enfermedad. Este modelo es dependiente de la demografía, es decir, que cada compartimiento tiene una tasa de salida que refleja la mortalidad, y el estado de susceptibles tiene una tasa de entrada que muestra la natalidad.  
+
+1) Definición de ecuaciones del modelo.    
+
+S=-bSI+v-uS  
+
+I=bSI-yI-uI  
+
+R=yI-uR  
+  
+2) Creación del código.  
+En esta parte se escriben las ecuaciones con sus respectivas operaciones o interacciones entre cada estado, para mostrar las interacciones se colocan a manera de multiplicación junto con su parametro o sea la tasa. b(tasa de infección), y(tasa a la que los infectados se recuperan), v(tasa de natalidad) y u (tasa de mortalidad)
+```{r}
+SIR <- function(t,state,parameters){
+  with(as.list(c(state,parameters)), {
+    dS<- -b*S*I+v-u*S
+    dI<- b*S*I-y*I-u*I
+    dR<- y*I-u*R
+    list(c(dS, dI, dR))
+  })
+}
+
+
+```
+  
+3) Asignación de valores.  
+```{r}
+parameters <- c(b = 1, v = 2, u = 1, y = 4)
+state <- c(S = 999, I = 1, R = 0)
+times <- seq(0, 20, by = 0.001)
+
+library(deSolve)
+ecuacion <- ode(y = state, times = times, func = SIR, parms = parameters)
+```
+  
+4) Visualización del modelo.  
+```{r}
+matplot(ecuacion[ , 1], ecuacion[ , 2:4], type = "l", xlab = "tiempo", ylab = "Población",
+main = "SIR", lwd = 2)
+legend("topright", c("Susceptible", "Infectado","Recuperado"), col = 2:5,lty=1:3,cex=0.5)
+```
+  
+#### Modelo SEIR, con demografía.  
+El modelo SEIR se compone de cuatro estados. La característica principal de este modelo es el estado de expuesto. El termino de expuesto, refleja a las personas que bajo diversas condiciones se exponen al patógeno, estas condiciones pueden ser el convivir con una persona infectada que cuenta con una carga patogenica baja.  
+  
+1) Definición de ecuaciones del modelo.  
+  
+S= v-bSI-uS  
+
+E= bSI-wE-uE  
+
+I= wE-yR-uI  
+
+R= yI-uR  
+  
+2) Creación del código.  
+```{r}
+SEIR <- function(t,state,parameters){
+  with(as.list(c(state,parameters)), {
+    dS<- v-b*S*I-u*S
+    dE<- b*S*I-w*E-u*E
+    dI<- w*E-y*R-u*I
+    dR<- y*I-u*R
+    list(c(dS, dE, dI, dR))
+  })
+}
+```
+  
+3) Asignación de parametros.  
+```{r}
+parm <- c(v = 2/3, b = 1, u = 1, w = 2, y = 1)
+condiciones <- c(S =200, E = 0 , I = 3, R = 0)
+tiempo <- seq(0,200,by = 0.001)
+
+library(deSolve)
+
+ecSEIR <- ode(condiciones,tiempo,SEIR,parm)
+
+
+```
+  
+4) Visualización del modelo.  
+```{r}
+matplot(ecSEIR[ , 1], ecSEIR[ , 2:5], type = "l", xlab = "tiempo", ylab = "Población",
+        main = "S", lwd = 2)
+legend("topright", c("Susceptible", "Expuesto", "Infectado", "Recuperado"), col = 1:3,lty=1:3,cex=0.5)
+
+```
+  
+#### Modelo SEIRS, con demografía.  
+El modelo SEIRS tiene la caracteristica de que la población que se recupera, vuelve a pasar a ser susceptible. Esto puede estar explicado de la forma en la que no es posible generar inmunidad cuando se contempla este modelo. Con base en esto, una vez que termina el periodo de recuperación, se vuelve a ser susceptible.  
+  
+1) Definición de las ecuaciones del modelo.  
+  
+S=-bSI+eR+vS-uS  
+  
+E=bSI-wE-uE  
+  
+I=wE-yR-uI  
+  
+R=yI-uR-eR  
+  
+2) Creación de del código.  
+```{r}
+SEIRS <- function(t,state2,parameters2){
+  with(as.list(c(state2,parameters2)), {
+    dS<- -b*S*I+e*R+v-u*S
+    dE<- b*S*I-w*E-u*E
+    dI<- w*E-y*R-u*I
+    dR<- y*I-u*R+e*R
+    list(c(dS, dE, dI, dR))
+  })
+}
+```
+  
+3) Asignación de parámetros.  
+```{r}
+parameters2 <- c(b= 1/3, w= 1/2, y= 2, e=3, v= 1, u= 1)
+state2 <- c(S=100, E=0, I=4, R= 0)
+times2 <- c(0, 100, by=0.1)
+
+library(deSolve)
+
+ecuacionSEIRS <- ode(y = state2, times = times2, func = SEIRS, parms = parameters2)
+```
+  
+4) visualización del modelo.  
+```{r}
+matplot(ecuacionSEIRS[ , 1], ecuacionSEIRS[ , 2:5], type = "l", xlab = "tiempo", ylab = "Población",
+        main = "S", lwd = 2)
+legend("topright", c("Susceptible", "Expuesto", "Infectado", "Recuperado"), col = 1:3,lty=1:3,cex=0.5)
+
+```
+
+
+
+
